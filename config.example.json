@@ -1,0 +1,15 @@
+{
+  "_comment": "Copy this to ~/.config/claude-code-freeagent/config.json and edit. Nothing secret goes here — the actual OAuth tokens live in the two credential files named below. See docs/SETUP.md.",
+
+  "freeagent_credentials": "~/.config/claude-code-freeagent/freeagent.env",
+  "gmail_credentials": "~/.config/claude-code-freeagent/gmail.env",
+
+  "_downloads_comment": "Where you tend to save invoice PDFs. Point this wherever yours land.",
+  "downloads_dir": "~/Downloads",
+
+  "_cc_marker_comment": "Appended to every description Claude touches, so you (and your accountant) can filter for them. Use anything distinctive.",
+  "cc_marker": "(CC)",
+
+  "_cutoffs_comment": "Optional. Keyed by the bank-account NAME exactly as it appears in FreeAgent. Anything on that account dated before the cutoff is ignored — useful for a personal account linked mid-year that dragged in pre-business history. Leave as {} if you have none.",
+  "account_cutoffs": {}
+}

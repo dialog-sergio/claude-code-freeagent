@@ -1,0 +1,13 @@
+# NEVER commit credentials or personal config.
+# The real credential files live in ~/.config/claude-code-freeagent/ (outside this repo),
+# but these patterns are a belt-and-braces guard in case anyone copies them in.
+*.env
+config.json          # personal config; commit config.example.json instead
+
+# Python
+__pycache__/
+*.pyc
+
+# OS / editor
+.DS_Store
+*.swp
