@@ -58,6 +58,11 @@ your live books until you say so.
 
 ## Get started
 
+**Fastest path:** clone this repo and ask your Claude Code to *"set this up for me"* — it drives
+the whole thing (creates config, does the OAuth token exchanges, installs the skill, runs the first
+check), and you only do the browser bits (creating the two apps + clicking Approve). See
+**[AGENTS.md](AGENTS.md)**, which tells the agent exactly how to run the setup. Or do it by hand:
+
 1. **[docs/SETUP.md](docs/SETUP.md)** — the one-time OAuth setup (FreeAgent + Gmail), config, and
    installing the skill.
 2. **[docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md)** — the flow, the scripts, the schedule, the audit.
