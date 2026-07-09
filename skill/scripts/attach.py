@@ -18,7 +18,7 @@ Rules baked in:
 """
 import sys, os, json, base64, argparse
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib import fa_api, fa_get_explanation, CC_MARKER  # noqa: E402
+from lib import fa_api, fa_get_explanation, CC_MARKER, mime_for  # noqa: E402
 
 
 def with_cc(desc):
@@ -27,10 +27,11 @@ def with_cc(desc):
     return desc if desc.endswith(CC_MARKER) else (f'{desc} {CC_MARKER}').strip()
 
 
-def attachment_block(pdf, file_name, note_desc):
-    b64 = base64.b64encode(open(pdf, 'rb').read()).decode()
-    return {"data": b64, "file_name": file_name or os.path.basename(pdf),
-            "content_type": "application/pdf", "description": note_desc or "Supplier invoice"}
+def attachment_block(path, file_name, note_desc):
+    """Works for PDFs and image receipts alike — content type inferred from the extension."""
+    b64 = base64.b64encode(open(path, 'rb').read()).decode()
+    return {"data": b64, "file_name": file_name or os.path.basename(path),
+            "content_type": mime_for(path), "description": note_desc or "Supplier invoice"}
 
 
 def main():

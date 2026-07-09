@@ -14,7 +14,7 @@ Usage: python audit.py --from 2026-01-01 --to 2026-06-30 [--account "Account Nam
 """
 import sys, os, json, argparse, urllib.parse
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib import fa_api, fa_refresh, get_accounts, account_start, load_env, FA_ENV  # noqa: E402
+from lib import fa_get, fa_refresh, get_accounts, account_start, load_env, FA_ENV  # noqa: E402
 
 BASE = load_env(FA_ENV)['FREEAGENT_BASE_URL']
 
@@ -25,7 +25,7 @@ NON_INVOICE_HINTS = ('salar', 'wage', 'dividend', 'paye', 'national insurance', 
 
 
 def category_map():
-    _, d = fa_api("/v2/categories")
+    d = fa_get("/v2/categories")
     m = {}
     for grp in d.values():
         if isinstance(grp, list):
@@ -40,7 +40,7 @@ def explanations(acc_id, frm, to):
     while True:
         q = urllib.parse.urlencode({'bank_account': f"{BASE}/v2/bank_accounts/{acc_id}",
                                     'from_date': frm, 'to_date': to, 'per_page': 100, 'page': page})
-        _, d = fa_api(f"/v2/bank_transaction_explanations?{q}")
+        d = fa_get(f"/v2/bank_transaction_explanations?{q}")
         exps = d.get('bank_transaction_explanations', [])
         if not exps:
             break
@@ -52,7 +52,7 @@ def explanations(acc_id, frm, to):
 
 
 def filed_periods():
-    _, d = fa_api("/v2/vat_returns")
+    d = fa_get("/v2/vat_returns")
     out = []
     for v in d.get('vat_returns', []):
         out.append((v.get('period_starts_on'), v.get('period_ends_on'),

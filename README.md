@@ -53,7 +53,8 @@ your live books until you say so.
 - A **FreeAgent** account + a free FreeAgent **developer app** (for API access).
 - *(Optional but recommended)* a **Gmail** account + a Google Cloud **OAuth client** (read-only) —
   needed only to pull invoices that live in email.
-- **macOS/Chrome** if you want the email-body-to-PDF rendering (used for receipts like Trainline).
+- **Chrome or Chromium** (macOS or Linux; auto-detected, or set `chrome_path` in config) if you
+  want the email-body-to-PDF rendering (used for receipts like Trainline).
 - Python 3 (stdlib only — no pip installs).
 
 ## Get started

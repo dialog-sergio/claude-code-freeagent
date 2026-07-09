@@ -13,7 +13,7 @@ Usage: python check_unexplained.py [--days 180]
 """
 import sys, os, argparse, urllib.parse, datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib import fa_api, fa_refresh, get_accounts, load_env, FA_ENV, account_start  # noqa: E402
+from lib import fa_get, fa_refresh, get_accounts, load_env, FA_ENV, account_start  # noqa: E402
 
 BASE = load_env(FA_ENV)['FREEAGENT_BASE_URL']
 
@@ -24,7 +24,7 @@ def _txns(acc_id, view, frm, to):
         q = urllib.parse.urlencode({'bank_account': f"{BASE}/v2/bank_accounts/{acc_id}",
                                     'view': view, 'from_date': frm, 'to_date': to,
                                     'per_page': 100, 'page': page})
-        _, d = fa_api(f"/v2/bank_transactions?{q}")
+        d = fa_get(f"/v2/bank_transactions?{q}")
         txns = d.get('bank_transactions', [])
         if not txns:
             break

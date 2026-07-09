@@ -55,6 +55,12 @@ def account_start(name):
 
 
 def load_env(path):
+    if not os.path.exists(path):
+        raise SystemExit(
+            f"Credential file not found: {path}\n"
+            "Run the one-time setup first (docs/SETUP.md in the repo), or ask Claude to set it up.\n"
+            "If your credentials live elsewhere, point config.json at them "
+            "(~/.config/claude-code-freeagent/config.json).")
     env = {}
     for line in open(path):
         line = line.strip()
@@ -112,16 +118,38 @@ def fa_api(path, method='GET', payload=None):
         return ex.code, ex.read().decode()
 
 
+def fa_get(path):
+    """GET that fails loudly with a readable message instead of handing callers an error string
+    (a raw AttributeError on `.get()` is how a bad token once surfaced as a confusing crash)."""
+    st, d = fa_api(path)
+    if not isinstance(d, dict):
+        raise SystemExit(f"FreeAgent API error {st} for {path.split('?')[0]}: {str(d)[:300]}")
+    return d
+
+
 def fa_get_explanation(eid):
-    _, d = fa_api(f"/v2/bank_transaction_explanations/{eid}")
-    return d.get('bank_transaction_explanation', {})
+    return fa_get(f"/v2/bank_transaction_explanations/{eid}").get('bank_transaction_explanation', {})
 
 
 def get_accounts():
     """Discover the business's bank accounts from FreeAgent → {name: id}. Never hard-coded, so
     this works for any account without configuring IDs."""
-    _, d = fa_api("/v2/bank_accounts")
+    d = fa_get("/v2/bank_accounts")
     return {a.get('name'): int(a.get('url').split('/')[-1]) for a in d.get('bank_accounts', [])}
+
+
+def mime_for(path):
+    """Content type for a receipt file — FreeAgent accepts PDF/PNG/JPEG/GIF, and a photo receipt
+    is a first-class citizen here, so don't mislabel a .jpg as a PDF. Unsupported types (e.g. an
+    iPhone .heic) fail loudly rather than upload with a wrong label — convert those first."""
+    ext = os.path.splitext(path)[1].lower()
+    m = {'.pdf': 'application/pdf', '.png': 'image/png', '.jpg': 'image/jpeg',
+         '.jpeg': 'image/jpeg', '.gif': 'image/gif'}.get(ext)
+    if not m:
+        raise SystemExit(f"Unsupported attachment type '{ext}' ({os.path.basename(path)}). "
+                         "FreeAgent accepts PDF/PNG/JPEG/GIF — convert it first "
+                         "(e.g. on macOS: sips -s format jpeg in.heic --out out.jpg).")
+    return m
 
 
 # ---------------- Gmail (read-only) ----------------

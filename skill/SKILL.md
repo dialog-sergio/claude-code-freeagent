@@ -32,8 +32,9 @@ Access tokens last ~1 hour and auto-refresh, but start clean (from the skill's `
 python3 -c "import lib; lib.fa_refresh(); lib.gm_refresh(); print('tokens refreshed')"
 ```
 
-If a credential file is missing, stop and tell the owner — do not invent credentials. Paths are
-in the config file (see `config.example.json` / `docs/SETUP.md`).
+If a credential file is missing, stop and tell the owner — do not invent credentials. Paths are in
+the config file (see `config.example.json` and `docs/SETUP.md` **in the repo** — the docs aren't
+copied into the installed skill).
 
 ## Step 1 — Find what needs work
 

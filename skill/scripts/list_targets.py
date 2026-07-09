@@ -1,7 +1,8 @@
 """List bank transactions that need work, so nothing is missed.
 
-Two buckets:
+Three buckets:
   UNEXPLAINED       - no explanation yet (need full explain + invoice)
+  FOR_APPROVAL      - auto-explained by a bank rule (marked_for_review), awaiting approval
   MISSING_INVOICE   - explained money-out with no attachment (need the PDF)
 
 Usage:
@@ -9,11 +10,11 @@ Usage:
 """
 import sys, os, json, argparse, urllib.parse
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib import fa_api, fa_refresh, get_accounts, account_start, load_env, FA_ENV  # noqa: E402
+from lib import fa_get, fa_refresh, get_accounts, account_start, load_env, FA_ENV  # noqa: E402
 
 
 def category_map():
-    _, d = fa_api("/v2/categories")
+    d = fa_get("/v2/categories")
     m = {}
     for grp in d.values():
         if isinstance(grp, list):
@@ -31,7 +32,7 @@ def paged_explanations(acc_id, frm, to):
     while True:
         q = urllib.parse.urlencode({'bank_account': f"{BASE}/v2/bank_accounts/{acc_id}",
                                     'from_date': frm, 'to_date': to, 'per_page': 100, 'page': page})
-        _, d = fa_api(f"/v2/bank_transaction_explanations?{q}")
+        d = fa_get(f"/v2/bank_transaction_explanations?{q}")
         exps = d.get('bank_transaction_explanations', [])
         if not exps:
             break
@@ -48,7 +49,7 @@ def unexplained(acc_id, frm, to):
     while True:
         q = urllib.parse.urlencode({'bank_account': f"{base}/v2/bank_accounts/{acc_id}",
                                     'view': 'unexplained', 'from_date': frm, 'to_date': to, 'per_page': 100, 'page': page})
-        _, d = fa_api(f"/v2/bank_transactions?{q}")
+        d = fa_get(f"/v2/bank_transactions?{q}")
         txns = d.get('bank_transactions', [])
         if not txns:
             break
@@ -66,7 +67,7 @@ def for_review(acc_id, frm, to):
         q = urllib.parse.urlencode({'bank_account': f"{BASE}/v2/bank_accounts/{acc_id}",
                                     'view': 'marked_for_review', 'from_date': frm, 'to_date': to,
                                     'per_page': 100, 'page': page})
-        _, d = fa_api(f"/v2/bank_transactions?{q}")
+        d = fa_get(f"/v2/bank_transactions?{q}")
         txns = d.get('bank_transactions', [])
         if not txns:
             break

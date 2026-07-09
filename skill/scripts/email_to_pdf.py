@@ -10,11 +10,23 @@ Uses Chrome headless, which renders faithfully WITHOUT a display — so it is sc
 Usage:
   python email_to_pdf.py <gmail_msgid> <outpath.pdf>
 """
-import sys, os, base64, subprocess, tempfile
+import sys, os, base64, subprocess, tempfile, shutil
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib import gm_message  # noqa: E402
+from lib import gm_message, _CFG  # noqa: E402
 
-CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
+def _find_chrome():
+    """Config override first (config.json: "chrome_path"), then common locations per OS."""
+    cand = [_CFG.get('chrome_path'),
+            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",   # macOS
+            "/Applications/Chromium.app/Contents/MacOS/Chromium",
+            shutil.which("google-chrome"), shutil.which("chromium"),          # Linux
+            shutil.which("chromium-browser")]
+    for c in cand:
+        if c and os.path.exists(c):
+            return c
+    raise SystemExit("Chrome/Chromium not found. Install it, or set \"chrome_path\" in "
+                     "~/.config/claude-code-freeagent/config.json.")
 
 
 def html_body(msg):
@@ -39,7 +51,7 @@ def render(msgid, out):
     open(htmlpath, 'w', encoding='utf-8').write(html)
     if os.path.exists(out):
         os.remove(out)
-    cmd = [CHROME, "--headless", "--disable-gpu", "--no-pdf-header-footer",
+    cmd = [_find_chrome(), "--headless", "--disable-gpu", "--no-pdf-header-footer",
            f"--user-data-dir={os.path.join(tmp, 'profile')}",
            "--virtual-time-budget=6000",
            f"--print-to-pdf={out}", f"file://{htmlpath}"]

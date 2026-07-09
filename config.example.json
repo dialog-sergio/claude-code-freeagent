@@ -11,5 +11,8 @@
   "cc_marker": "(CC)",
 
   "_cutoffs_comment": "Optional. Keyed by the bank-account NAME exactly as it appears in FreeAgent. Anything on that account dated before the cutoff is ignored — useful for a personal account linked mid-year that dragged in pre-business history. Leave as {} if you have none.",
-  "account_cutoffs": {}
+  "account_cutoffs": {},
+
+  "_chrome_comment": "Optional. Only needed for email-body receipts (e.g. Trainline) rendered to PDF. Auto-detected on macOS/Linux; set explicitly if yours lives elsewhere.",
+  "chrome_path": null
 }
