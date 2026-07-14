@@ -44,6 +44,10 @@ def main():
     ap.add_argument('--pdf')
     ap.add_argument('--file-name')
     ap.add_argument('--reverse-charge', action='store_true')
+    ap.add_argument('--vat-rate',
+                    help='set sales_tax_rate explicitly, e.g. "0.0" for a zero-rated / no-reclaim '
+                         'line (business gift or entertaining, exempt supply). Sets ec_status to '
+                         'UK/Non-EC unless already set. Do NOT combine with --reverse-charge.')
     ap.add_argument('--manual-vat', type=float, default=None,
                     help='set an exact VAT amount (manual_sales_tax_amount) to match a receipt '
                          'whose stated VAT differs from a straight 20%% of gross (e.g. a mixed '
@@ -66,6 +70,9 @@ def main():
     if a.reverse_charge:
         body["ec_status"] = "Reverse Charge"
         body["sales_tax_rate"] = "AUTO"
+    if a.vat_rate is not None:
+        body["sales_tax_rate"] = a.vat_rate
+        body.setdefault("ec_status", "UK/Non-EC")
     if a.manual_vat is not None:
         body["manual_sales_tax_amount"] = a.manual_vat
     if a.approve:
@@ -87,7 +94,7 @@ def main():
         base_desc = e.get('description') or ''
         if a.note:
             base_desc = f"{base_desc} // {a.note}" if a.note not in base_desc else base_desc
-        body["category"] = e.get('category')
+        body["category"] = a.category_url or e.get('category')
         body["description"] = with_cc(base_desc)
         st, resp = fa_api(f"/v2/bank_transaction_explanations/{a.eid}", 'PUT',
                           {"bank_transaction_explanation": body})

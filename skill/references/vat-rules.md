@@ -49,6 +49,34 @@ zero-rated. The small booking fee doesn't change this in practice. Same logic fo
 (bus, most taxis). Contactless transit journeys have no receipt at all — leave them without an
 attachment.
 
+## Business gifts & entertaining — disallowable, no VAT reclaim
+
+A gift of goods to a business contact (a thank-you bottle, a hamper) is a **business gift**, not a
+subsistence/meal cost and not a purchase for resale. FreeAgent has **no dedicated "Gifts"
+category**, so book it to **Business Entertaining** (`/v2/categories/335`,
+`allowable_for_tax=false`) — a non-qualifying business gift gets the **identical tax treatment** to
+entertaining, and 335 is the only disallowable expense bucket that fits. Do **not** leave it in
+Accommodation and Meals (285), which would wrongly reclaim the VAT and treat it as allowable.
+
+- **Corporation tax: disallowable.** The "small gift" allowance (≤£50, carrying a conspicuous
+  advert for the business) **excludes food, drink, tobacco and vouchers** — so a bottle of
+  wine/champagne is disallowable regardless of value.
+- **VAT: do not reclaim.** Set `ec_status="UK/Non-EC"`, `sales_tax_rate="0.0"`. (Even treated as a
+  pure gift, reclaiming input VAT on gifts over £50 to one person triggers an offsetting output-VAT
+  deemed supply — net zero. Booking 0% is the clean, defensible line.)
+- Append a note to the description (e.g. "client-referral thank-you gift") so the disallowable
+  treatment is self-explaining at year-end.
+- **Client entertaining** (a meal/event you host for a client) is likewise 335 — disallowable, VAT
+  blocked. **Staff entertaining** is different: category 289 (`allowable`), within the annual
+  £150/head event limit.
+- **Write it with:**
+  ```bash
+  python3 attach.py --eid <eid> \
+      --category-url https://api.freeagent.com/v2/categories/335 \
+      --vat-rate 0.0 --note "client-referral thank-you gift" --approve
+  ```
+  As always with a filed period, only attach documentation — don't move the VAT figures.
+
 ## Filed VAT periods — flag, don't fix
 
 VAT returns already filed cannot be corrected by editing the old transaction. If you find a VAT
