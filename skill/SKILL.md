@@ -75,6 +75,14 @@ don't search for a second invoice. Only go looking if there's genuinely no attac
 Otherwise, try the sources in order — and be exhaustive, because a single failed search is how an
 invoice gets missed:
 
+**⚠️ Once you have the receipt email, ALWAYS enumerate its real attachments before using a link.**
+Walk every part for `filename`*.pdf + `body.attachmentId` (`lib.gm_find_pdf_attachment`, or print
+the part tree). Suppliers routinely attach BOTH an `Invoice-*.pdf` and a `Receipt-*.pdf` while
+*also* embedding a hosted link — and the link re-generates a fresh, byte-different file. **Attach
+the emailed invoice** (the tax document), not the receipt (proof of payment) and not a re-download.
+Observed on a Stripe-billed SaaS invoice: the hosted-link copy and the emailed copy were identical
+in size but different in MD5.
+
 1. **Hosted / Stripe link** — many SaaS receipts embed a public PDF link. Search Gmail:
    ```bash
    python3 find_invoice.py gmail-search 'from:<sender> after:YYYY/MM/DD before:YYYY/MM/DD'
@@ -121,6 +129,21 @@ supplier at 0%/"reverse charge" → reverse charge (`Reverse Charge` + `AUTO`). 
 nothing** — plenty of US-looking SaaS are UK-VAT-registered and charge 20%. Set VAT to `AUTO` on
 every reverse-charge write (it resolves to 0%, which is correct).
 
+**Extract the PDF with `pdftotext -layout <file> -`** (poppler; `brew install poppler` /
+`apt-get install poppler-utils`). `-layout` preserves the columns so the tax column and its
+numbered footnotes stay attached to the line they belong to.
+
+**The receipt EMAIL is not a substitute for the PDF.** Observed on a £10 SaaS charge: the email
+showed only "Total £10.00" with no tax line, while the PDF carried a `0%` tax column, the footnote
+"Tax to be paid on a reverse-charge basis", and both parties' VAT numbers. The correct call was
+only provable from the PDF. If a PDF genuinely cannot be read, say so plainly in the approval box
+rather than presenting an email-body inference as if you had read the invoice.
+
+**Inverse trap: a supplier holding a GB VAT number has NOT necessarily charged it.** An EU
+supplier can be GB-registered and still zero-rate the supply because the customer's VAT number is
+on the bill-to — that is textbook B2B reverse charge. Read the tax column and footnote, never the
+letterhead.
+
 If you spot a VAT error on an **already-explained, already-filed** transaction, don't fix it —
 collect it for the accountant (see vat-rules.md).
 
@@ -161,7 +184,11 @@ for UK-VAT / domestic purchases. Report the confirmed result.
 
 - **Approve-first.** These are live books feeding HMRC returns. Surprising the owner with an
   unrequested write breaks the whole trust model — always prepare-then-ping.
-- **Read the invoice for VAT.** Guessing reverse charge from the vendor name has produced real
+- **Never let an unreadable file end the hunt.** If a PDF won't open or a link won't fetch, keep
+  going down the source list — enumerate the email's own attachments, check Downloads, render the
+  email body. Reporting a tooling limitation is not the same as finding the invoice: it once led to
+  an approval box built on email text while two real PDFs sat attached to the same email.
+- **Read the invoice for VAT** (`pdftotext -layout`). Guessing reverse charge from the vendor name has produced real
   errors both directions. The PDF is the source of truth.
 - **Match by period.** Same-price subscriptions make amount-matching a trap.
 - **Enumerate Downloads fully.** Name-search has missed invoices that were sitting right there.

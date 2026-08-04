@@ -30,6 +30,17 @@ supplier's invoice often literally says "reverse charge"; a US supplier simply s
 The point: **a foreign-looking vendor may still register for UK VAT and charge it — and a
 UK-looking one may not.** Only the invoice reveals which.
 
+**The inverse trap: a GB VAT number on the letterhead does NOT mean they charged it.** An EU
+supplier can be GB-registered and still zero-rate the supply because the customer's VAT number is
+on the bill-to — textbook B2B reverse charge. Read the **tax column and the footnote**, never the
+letterhead. A real example footnote: "Tax to be paid on a reverse-charge basis". → reverse charge.
+
+**Extract with `pdftotext -layout <file> -`** (poppler). The `-layout` flag keeps the columns
+aligned so the tax column and its numbered footnotes stay attached to the line they belong to;
+without it the `0%` and its footnote can detach. A receipt EMAIL is not a substitute — one observed
+SaaS receipt email showed only "Total £10.00" with no tax line at all, while the PDF carried the
+0%, the reverse-charge footnote, and both VAT numbers.
+
 ## About "AUTO" (important, non-obvious)
 
 For a reverse charge, FreeAgent only accepts `sales_tax_rate` of `"AUTO"` or `"0.0"` — a positive
