@@ -56,6 +56,21 @@ the guess is wrong, and present it for the owner to approve. On their go-ahead, 
 flag: `python3 attach.py --eid <eid> --approve` (add `--pdf`/`--reverse-charge` in the same call if
 you're also attaching/fixing). Approving is what moves it out of their queue.
 
+**⚠️ The guess rules COPY a previous explanation — including your notes and the audit marker.**
+`guess_rule_name: "similar_explained_transactions_rule"` clones the last same-supplier explanation
+onto the new transaction: description, appended note, blended VAT rate, the lot. Consequences:
+
+- **The audit marker does NOT prove this one was checked.** It gets cloned onto transactions no one
+  has ever looked at. Never treat the marker or an existing note as evidence the guess was
+  verified — check `marked_for_review` and the attachment instead.
+- **A blended rate is cloned onto a basket it doesn't fit.** Real case: a £10.00 café bill written
+  at 3.41% ("sandwich zero-rated, VAT on the soft drink only") was cloned onto a £15.30 bill of
+  three coffees and a pastry — carrying a note about items that weren't on it, and under-claiming
+  £1.35. A bespoke `--manual-vat` rate is a one-off: **assume the next same-supplier transaction
+  inherits it wrongly.**
+- **Fix the inherited text with `--set-description`**, which replaces rather than appends
+  (`--note` would stack a second note on top of the wrong one).
+
 Default to the whole current period. Skip things that legitimately have no invoice: salary,
 dividends, HMRC/VAT payments, inter-account transfers, bill payments (the invoice lives on the
 bill), and contactless travel. Mention what you're skipping so nothing looks lost.

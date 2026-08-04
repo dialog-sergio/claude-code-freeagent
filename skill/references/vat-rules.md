@@ -60,6 +60,46 @@ zero-rated. The small booking fee doesn't change this in practice. Same logic fo
 (bus, most taxis). Contactless transit journeys have no receipt at all — leave them without an
 attachment.
 
+## Café & food bills — a mixed basket is NOT a flat 20%
+
+FreeAgent's auto-guesser books café spend to Accommodation and Meals (285) and applies that
+category's **default 20% to the whole bill**. It has not read the receipt. On a mixed basket that
+silently over-reclaims — so **always open the receipt and price the lines**. UK liability per item:
+
+| Item | Liability |
+|---|---|
+| Hot drinks (coffee, tea) | **20% always** — eat-in or takeaway, no exceptions |
+| Hot food | **20% always** |
+| Soft/cold drinks (cola, juice, bottled water) | **20% always** — never zero-rated |
+| Cold food (sandwich, salad, pastry) | **0% if takeaway**, 20% if eat-in |
+| Alcohol | **20% always** |
+
+So the only line that turns on eat-in vs takeaway is **cold food**. If a bill is all hot drinks,
+20% is right either way and needs no question. If it mixes cold food with anything else, you must
+know whether it was eaten in — **ask the owner, don't assume**; a plausible guess here is a real
+VAT error in live books.
+
+**Write a mixed bill with `--manual-vat <positive VAT>`**, not a rate — FreeAgent back-solves the
+blended rate itself:
+```bash
+python3 attach.py --eid <eid> --pdf /tmp/receipt.pdf \
+    --manual-vat 0.33 --note "takeaway: sandwich zero-rated, VAT on soft drink only" --approve
+```
+Always put the reasoning in `--note` so the odd-looking rate is self-explaining at year-end.
+
+Real case: a £10.00 bill — sandwich £8.00 + cola £2.00, **takeaway**. The guesser said 20% =
+£1.67. Correct is VAT on the cola only = **£0.33** (blended 3.41%). A £1.34 over-reclaim, caught
+only by reading the receipt.
+
+**Card-reader receipts (Square, Zettle, etc.) often show no VAT line and no VAT registration
+number.** That doesn't prove the café is unregistered — it's a quirk of the receipt format — but
+strictly HMRC wants a VAT number to support a reclaim even under £250. Settle this **once with the
+accountant as a standing policy** and follow it; do not relitigate it per-transaction. Where a
+receipt is genuinely lost, the safe precedent is 0% and no reclaim.
+
+Note the entertaining rules below are drawn on *goods gifted*, not on buying a contact a coffee:
+meals and coffees with clients and prospects are booked to **285 at the applicable rate**.
+
 ## Business gifts & entertaining — disallowable, no VAT reclaim
 
 A gift of goods to a business contact (a thank-you bottle, a hamper) is a **business gift**, not a
