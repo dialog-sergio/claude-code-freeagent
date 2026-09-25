@@ -80,6 +80,24 @@ carry pre-business history that must not be touched. Config's `account_cutoffs` 
 FreeAgent account name) tells `list_targets.py` and `check_unexplained.py` to ignore anything on
 that account dated before its cutoff.
 
+**Payments to the owner (salary, home-office rent, reimbursements, personal spend).** These are
+not supplier payments. Each one is a **`Money Paid to User`** explanation with `paid_user` set to
+the owner's user url (`GET /v2/users`), no attachment, no VAT:
+
+| What the transfer is | Category | Notes |
+|---|---|---|
+| Monthly salary | Salary and Bonuses | net pay; matches the payroll figure |
+| Home-office rent / use-of-home charge paid to the owner | **Expense Account** | accountant's ruling — NOT "Rent" and NOT "Use Of Home", even though both read right by name |
+| Out-of-pocket expense reimbursed | Expense Account | the receipt lives on the expense claim |
+| Personal spend on the company card | Director Loan Account | repayment comes back as "Payment from director's loan" |
+
+**Check the type as well as the category on a for-approval guess.** The similar-transactions rule
+clones whatever was last written, so one wrong month becomes every month: a home-office rent that
+had once been booked as a plain `Payment` to "Rent" was cloned as-is for three months, and the
+accountant had to redo all of them. A category name that sounds right is not a check. Fix a wrong
+guess in one call: `attach.py --eid <eid> --paid-user <user url> --category-url <category url>
+--approve`. `list_targets.py` shows a `paid_user:` flag on each explanation for exactly this reason.
+
 ## Step 2 — For each transaction, find its invoice
 
 **First, check whether it already has one.** If the transaction (or its explanation) already carries

@@ -128,6 +128,15 @@ Accommodation and Meals (285), which would wrongly reclaim the VAT and treat it 
   ```
   As always with a filed period, only attach documentation — don't move the VAT figures.
 
+## Payments to the owner — no VAT, and not a supplier payment
+
+Salary, the owner's home-office rent, expense reimbursements and personal spend to the director's
+loan are `Money Paid to User` explanations (`paid_user` set). There is no VAT on any of them: the
+owner is not VAT-registered and nothing is being supplied to the business. Never set a rate, never
+set reverse charge, never hunt for an invoice. The category table is in SKILL.md ("Payments to the
+owner"); the one that trips people is home-office rent, which the accountant books to **Expense
+Account**, not "Rent" or "Use Of Home".
+
 ## Filed VAT periods — flag, don't fix
 
 VAT returns already filed cannot be corrected by editing the old transaction. If you find a VAT

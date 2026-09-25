@@ -14,6 +14,12 @@ Rules baked in:
   * --reverse-charge sets ec_status="Reverse Charge" + sales_tax_rate="AUTO"
     (AUTO resolves to 0% for reverse charge — that is correct and expected).
   * Attaches the PDF (<=5MB; PDF/PNG/JPEG/GIF).
+  * --paid-user <user url> makes it a "Money Paid to User" explanation (salary, owner's
+    home-office rent, expense reimbursement, personal spend to director's loan). Without it a
+    payment to the owner is booked as an ordinary supplier Payment, which the accountant will
+    have to redo.
+  * --set-description replaces the description outright (--note appends). Use it to clear text
+    the guess rule cloned from a previous, wrong explanation.
   * Prints BEFORE/AFTER so the write is verifiable.
 """
 import sys, os, json, base64, argparse
@@ -59,6 +65,15 @@ def main():
                          '"<bank>-Receipt-*.pdf") is '
                          'usually the real invoice you saved, not junk — do not blow it away.')
     ap.add_argument('--note', default=None, help='optional extra note text prepended before (CC)')
+    ap.add_argument('--set-description', default=None,
+                    help='REPLACE the description (then the audit marker is appended). Unlike '
+                         '--note this does not stack on the existing text, so use it when the '
+                         'guess rule cloned a note that belongs to a different transaction.')
+    ap.add_argument('--paid-user', default=None,
+                    help='FreeAgent user url (GET /v2/users). Makes the explanation "Money Paid '
+                         'to User" for that person: salary (Salary and Bonuses), the owner\'s '
+                         'home-office rent (Expense Account), expense reimbursements, personal '
+                         'spend (Director Loan Account). Pair with --category-url.')
     ap.add_argument('--approve', action='store_true',
                     help='clear marked_for_review — i.e. approve a transaction a bank rule auto-'
                          'explained. Only after you have okayed the guessed category/VAT.')
@@ -77,10 +92,13 @@ def main():
         body["manual_sales_tax_amount"] = a.manual_vat
     if a.approve:
         body["marked_for_review"] = False
+    if a.paid_user:
+        body["paid_user"] = a.paid_user
 
     if a.eid:  # UPDATE
         e = fa_get_explanation(a.eid)
-        print("BEFORE: ec=%s rate=%s value=%s attach=%s desc=%r" % (
+        print("BEFORE: type=%s cat=%s ec=%s rate=%s value=%s attach=%s desc=%r" % (
+            e.get('type'), (e.get('category') or '').split('/')[-1],
             e.get('ec_status'), e.get('sales_tax_rate'), e.get('sales_tax_value'),
             (e.get('attachment') or {}).get('file_name'), e.get('description')))
         existing = e.get('attachment') or {}
@@ -91,7 +109,7 @@ def main():
         if a.pdf and existing.get('url') and a.replace:
             st, _ = fa_api(existing['url'], 'DELETE')
             print(f"deleted existing attachment ({existing.get('file_name')}) status={st}")
-        base_desc = e.get('description') or ''
+        base_desc = a.set_description if a.set_description is not None else (e.get('description') or '')
         if a.note:
             base_desc = f"{base_desc} // {a.note}" if a.note not in base_desc else base_desc
         body["category"] = a.category_url or e.get('category')
@@ -102,7 +120,7 @@ def main():
     else:      # CREATE
         assert a.bank_transaction and a.category_url and a.gross is not None and a.dated_on, \
             "create mode needs --bank-transaction --category-url --gross --dated-on"
-        desc = with_cc(a.note or "")
+        desc = with_cc(a.set_description or a.note or "")
         body.update({"bank_transaction": a.bank_transaction, "category": a.category_url,
                      "gross_value": a.gross, "dated_on": a.dated_on, "description": desc})
         st, resp = fa_api("/v2/bank_transaction_explanations", 'POST',
@@ -114,7 +132,8 @@ def main():
         print("ERROR:", resp[:600]); return
     e2 = fa_get_explanation(eid)
     att = e2.get('attachment') or {}
-    print("AFTER:  ec=%s rate=%s value=%s attach=%s desc=%r" % (
+    print("AFTER:  type=%s cat=%s ec=%s rate=%s value=%s attach=%s desc=%r" % (
+        e2.get('type'), (e2.get('category') or '').split('/')[-1],
         e2.get('ec_status'), e2.get('sales_tax_rate'), e2.get('sales_tax_value'),
         att.get('file_name'), e2.get('description')))
 

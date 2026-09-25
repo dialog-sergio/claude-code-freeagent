@@ -103,9 +103,15 @@ def main():
         for t in for_review(aid, acc_frm, a.to):
             if (t.get('dated_on') or '') < acc_frm:
                 continue
+            g = (t.get('bank_transaction_explanations') or [{}])[0]
             result['for_approval'].append({'account': name, 'dated_on': t.get('dated_on'),
                 'amount': t.get('amount'), 'description': t.get('description'),
-                'url': t.get('url')})
+                'url': t.get('url'),
+                # what the rule guessed — check the TYPE too: a payment to the owner must be
+                # "Money Paid to User", not a plain supplier Payment (see SKILL.md)
+                'guess_category': cats.get(g.get('category', ''), g.get('category', '')),
+                'guess_type': g.get('type'), 'paid_user': bool(g.get('paid_user')),
+                'eid': (g.get('url') or '').split('/')[-1]})
         for e in paged_explanations(aid, acc_frm, a.to):
             if (e.get('dated_on') or '') < acc_frm:
                 continue
@@ -120,7 +126,7 @@ def main():
         print(f"  {t['dated_on']} | {float(t['amount']):9.2f} | {t['account']:9} | {(t['description'] or '')[:50]}")
     print(f"\nFOR APPROVAL (auto-explained by a rule, awaiting approval): {len(result['for_approval'])}")
     for t in sorted(result['for_approval'], key=lambda x: x['dated_on']):
-        print(f"  {t['dated_on']} | {float(t['amount']):9.2f} | {t['account']:9} | {(t['description'] or '')[:50]}")
+        print(f"  {t['dated_on']} | {float(t['amount']):9.2f} | {t['account']:9} | {(t['description'] or '')[:40]:40} | guess: {t['guess_type']} / {t['guess_category']} / paid_user:{t['paid_user']}  #{t['eid']}")
     print(f"\nMISSING INVOICE (explained money-out, no attachment): {len(result['missing_invoice'])}")
     for e in sorted(result['missing_invoice'], key=lambda x: x['dated_on']):
         print(f"  {e['dated_on']} | {float(e['amount']):9.2f} | {e['ec_status']:13} | {e['category'][:20]:20} | {(e['description'] or '')[:38]}  #{e['eid']}")
