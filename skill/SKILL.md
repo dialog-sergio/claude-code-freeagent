@@ -90,6 +90,17 @@ the owner's user url (`GET /v2/users`), no attachment, no VAT:
 | Home-office rent / use-of-home charge paid to the owner | **Expense Account** | accountant's ruling — NOT "Rent" and NOT "Use Of Home", even though both read right by name |
 | Out-of-pocket expense reimbursed | Expense Account | the receipt lives on the expense claim |
 | Personal spend on the company card | Director Loan Account | repayment comes back as "Payment from director's loan" |
+| Dividend to the owner | **Dividend** | every one, even a round sum that looks like a top-up or a loan; ask the owner if it is not clearly a dividend |
+
+**Dividends also go in the owner's tax tracker.** The owner pays personal tax on dividends through
+Self Assessment, so each one is logged where they track it. If config names a `dividend_tracker`
+(a spreadsheet the owner keeps), then straight after a dividend is approved and written, add one
+row: the bank date, a short description, the amount. Type only the input columns; the sheet works
+out the tax itself. Read the rows above first: if the payment is already there (same date and
+amount), don't add it twice. At the start of every run, also compare the tracker with every
+`Dividend` explanation in the owner's current tax year (6 April to 5 April) and report any that
+are missing from the tracker, or in the tracker with a different date or amount. Never fix a
+mismatch silently: say what differs and fix it once the owner agrees.
 
 **Check the type as well as the category on a for-approval guess.** The similar-transactions rule
 clones whatever was last written, so one wrong month becomes every month: a home-office rent that
